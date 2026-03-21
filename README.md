@@ -194,12 +194,6 @@ Used static rules instead of a real drug database. Trade-off: simpler but less c
 
 ---
 
-## 📸 Screenshots (Recommended)
-
-Add screenshots here:
-
-Swagger API  
-MongoDB Collections  
 
 ---
 
