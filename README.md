@@ -1,109 +1,146 @@
 # 🏥 Medication Reconciliation System
 
 ## 📌 Overview
-This project is a FastAPI-based backend system for managing patient medication data from multiple sources and detecting conflicts.
+The Medication Reconciliation System is a FastAPI-based backend service designed to ingest, normalize, and reconcile patient medication data from multiple heterogeneous sources.
 
-It supports:
-- Multi-source medication ingestion
-- Conflict detection across sources
-- Versioned medication snapshots
-- Conflict resolution tracking
-- Aggregation and reporting
+It detects inconsistencies across sources, maintains versioned medication history, and provides reporting capabilities for clinical analysis.
+
+---
+
+## 🎯 Objectives
+- Integrate multi-source medication data
+- Normalize heterogeneous inputs
+- Detect conflicts across sources
+- Maintain longitudinal history
+- Provide reporting endpoints
 
 ---
 
 ## 🚀 Features
 
-### 🔹 Ingestion
-- Accept medication data from:
-  - clinic_emr
-  - hospital_discharge
-  - patient_reported
+### 🔹 Multi-Source Ingestion
+Supports ingestion from:
+- clinic_emr
+- hospital_discharge
+- patient_reported
 
-### 🔹 Normalization
+Each ingestion creates a new versioned snapshot, preserving history.
+
+---
+
+### 🔹 Data Normalization
 - Converts medication names to lowercase
-- Ensures consistent structure
+- Standardizes input structure
+- Handles missing/malformed data gracefully
 
-### 🔹 Conflict Detection
-Detects:
-- Dose mismatch (same drug, different dose)
-- Status conflict (active vs inactive)
-- Drug interaction (based on predefined rules)
+---
 
-### 🔹 Versioning
-- Each ingestion creates a new snapshot version
-- Maintains longitudinal history
+### 🔹 Conflict Detection Engine
+
+#### ✅ Dose Mismatch
+Same medication appearing with different doses across sources.
+
+#### ✅ Status Conflict
+Medication marked as active in one source and inactive in another.
+
+#### ✅ Drug Interaction
+Detected using rule-based drug class mappings.
+
+---
+
+### 🔹 Versioning & History
+- Snapshot-based versioning
+- Each ingestion creates a new version
+- Enables tracking of medication changes over time
+
+---
 
 ### 🔹 Conflict Resolution
-- Mark conflicts as resolved
-- Store reason and timestamp
-
-### 🔹 Reporting
-- Patients with unresolved conflicts per clinic
-- Patients with ≥ 2 conflicts in last 30 days
-
----
-
-## 🛠 Tech Stack
-- FastAPI
-- MongoDB Atlas
-- PyMongo
-- Pytest
+- Conflicts can be marked as resolved
+- Stores:
+  - resolution reason
+  - timestamp
+- Maintains auditability
 
 ---
 
-## 📂 Project Structure
+### 🔹 Reporting APIs
 
-med_reconciliation/
-│
-├── app/
-│   ├── routes/
-│   │   ├── ingestion.py
-│   │   └── reports.py
-│   ├── services/
-│   │   ├── conflict_detection.py
-│   │   ├── normalization.py
-│   │   └── rules.py
-│   ├── db.py
-│   └── schemas.py
-│
-├── tests/
-│   ├── test_conflicts.py
-│   └── test_reports.py
-│
-├── seed/
-│   └── seed_data.py
-│
-├── requirements.txt
-└── README.md
+Patients with unresolved conflicts:
+GET /report/clinic/{clinic_name}
+
+Conflict summary (last 30 days):
+GET /report/conflicts/summary
+
+Resolve a conflict:
+POST /conflicts/{conflict_id}/resolve
 
 ---
 
-## ⚙️ Setup
+## 🏗 System Architecture
 
-Clone repo:
-git clone <your-repo-link>
-cd med_reconciliation
-
-Create venv:
-python3 -m venv venv
-source venv/bin/activate
-
-Install dependencies:
-pip install -r requirements.txt
-
----
-
-## ⚙️ MongoDB Setup
-
-Update in app/db.py:
-MongoClient("your_mongodb_connection_string")
+Client (Swagger UI)  
+↓  
+FastAPI Backend  
+↓  
+Services Layer  
+- Normalization  
+- Conflict Detection  
+- Rules Engine  
+↓  
+MongoDB Atlas  
 
 ---
 
-## ▶️ Run Application
+## 🗃 Data Model
 
-uvicorn app.main:app --reload
+### Snapshots Collection
+- patient_id  
+- version  
+- timestamp  
+- sources  
+
+Each snapshot stores medications grouped by source.
+
+---
+
+### Conflicts Collection
+- type  
+- medication(s)  
+- details  
+- resolved  
+- resolution  
+- patient_id  
+- timestamp  
+
+Stores detected conflicts in an auditable structure.
+
+---
+
+## ⚙️ Technology Stack
+- FastAPI  
+- MongoDB Atlas  
+- PyMongo  
+- Pytest  
+
+---
+
+## ⚙️ Setup Instructions
+
+git clone https://github.com/arjun755980/medication-reconciliation-system.git  
+cd med_reconciliation  
+python3 -m venv venv  
+source venv/bin/activate  
+pip install -r requirements.txt  
+
+Update MongoDB connection string in:
+app/db.py
+
+---
+
+## ▶️ Running the Application
+
+uvicorn app.main:app --reload  
 
 Swagger UI:
 http://127.0.0.1:8000/docs
@@ -112,71 +149,61 @@ http://127.0.0.1:8000/docs
 
 ## 🌱 Seed Data
 
-python seed/seed_data.py
+python seed/seed_data.py  
+
+Generates synthetic patients and conflict scenarios.
 
 ---
 
-## 🧪 Run Tests
+## 🧪 Testing
 
-PYTHONPATH=. pytest
+PYTHONPATH=. pytest  
 
----
-
-## 📊 API Endpoints
-
-POST /patients/{patient_id}/medications  
-GET /report/clinic/{clinic_name}  
-GET /report/conflicts/summary  
-POST /conflicts/{conflict_id}/resolve  
+Covers:
+- Conflict detection logic
+- Edge cases (missing fields)
+- Aggregation queries
 
 ---
 
-## 🗃 MongoDB Data Model
+## ⚖️ Design Decisions & Trade-offs
 
-Snapshots:
-- patient_id
-- version
-- timestamp
-- sources
+Denormalization vs References:
+Used denormalized schema for faster reads and simpler queries. Trade-off: increased storage redundancy.
 
-Conflicts:
-- type
-- medication(s)
-- details
-- resolved
-- resolution
-- patient_id
-- timestamp
+Snapshot-Based Versioning:
+Chosen over in-place updates to ensure auditability and historical tracking.
+
+Rule-Based Conflict Detection:
+Used static rules instead of a real drug database. Trade-off: simpler but less clinically comprehensive.
 
 ---
 
-## ⚖️ Design Decisions
-
-- Denormalized schema for faster reads
-- Snapshot-based versioning
-- Static rule-based conflict detection
-- Conflict recalculated after each ingestion
+## ⚠️ Limitations
+- No integration with real clinical drug database
+- Simplified rule-based conflict detection
+- No authentication or authorization layer
 
 ---
 
-## ⚠️ Notes
-
-- Replace MongoDB URI before running
-- Handles malformed input safely
-- Uses UTC timestamps
+## 🔮 Future Enhancements
+- Integration with external drug APIs
+- Advanced clinical decision support
+- Role-based authentication
+- Frontend dashboard for visualization
 
 ---
 
-## 📈 Future Improvements
+## 📸 Screenshots (Recommended)
 
-- Real drug database integration
-- Better resolution logic
-- Authentication
-- Frontend UI
+Add screenshots here:
+
+Swagger API  
+MongoDB Collections  
 
 ---
 
 ## 👨‍💻 Author
-
 Arjun Manohar  
-B.Tech CSE, NIT Calicut
+B.Tech Computer Science  
+National Institute of Technology Calicut
