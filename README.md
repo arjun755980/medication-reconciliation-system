@@ -197,7 +197,3 @@ Used static rules instead of a real drug database. Trade-off: simpler but less c
 
 ---
 
-## 👨‍💻 Author
-Arjun Manohar  
-B.Tech Computer Science  
-National Institute of Technology Calicut
