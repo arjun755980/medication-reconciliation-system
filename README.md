@@ -1,199 +1,247 @@
-# 🏥 Medication Reconciliation System
+# Medication Reconciliation & Conflict Reporting Service
 
-## 📌 Overview
-The Medication Reconciliation System is a FastAPI-based backend service designed to ingest, normalize, and reconcile patient medication data from multiple heterogeneous sources.
+## Overview
 
-It detects inconsistencies across sources, maintains versioned medication history, and provides reporting capabilities for clinical analysis.
+This project is a FastAPI-based backend system that ingests medication data from multiple sources, detects conflicts across those sources, and provides reporting for unresolved conflicts.
 
----
-
-## 🎯 Objectives
-- Integrate multi-source medication data
-- Normalize heterogeneous inputs
-- Detect conflicts across sources
-- Maintain longitudinal history
-- Provide reporting endpoints
+It simulates a real-world healthcare scenario where patient medication data may originate from different systems (such as clinics, hospitals, or patient input) and may contain inconsistencies.
 
 ---
 
-## 🚀 Features
+## Key Features
 
-### 🔹 Multi-Source Ingestion
-Supports ingestion from:
-- clinic_emr
-- hospital_discharge
-- patient_reported
-
-Each ingestion creates a new versioned snapshot, preserving history.
-
----
-
-### 🔹 Data Normalization
-- Converts medication names to lowercase
-- Standardizes input structure
-- Handles missing/malformed data gracefully
+- Multi-source medication ingestion  
+- Versioned snapshots (history preserved)  
+- Conflict detection:
+  - Dose mismatch  
+  - Status conflict (active vs inactive)  
+  - Drug interaction (rule-based)  
+- Conflict resolution with audit trail  
+- Reporting and aggregation endpoints  
+- MongoDB-based storage  
 
 ---
 
-### 🔹 Conflict Detection Engine
+## Tech Stack
 
-#### ✅ Dose Mismatch
-Same medication appearing with different doses across sources.
-
-#### ✅ Status Conflict
-Medication marked as active in one source and inactive in another.
-
-#### ✅ Drug Interaction
-Detected using rule-based drug class mappings.
+- Backend: FastAPI (Python 3.12)  
+- Database: MongoDB  
+- Driver: PyMongo  
+- API Testing: Swagger UI (/docs)  
 
 ---
 
-### 🔹 Versioning & History
-- Snapshot-based versioning
-- Each ingestion creates a new version
-- Enables tracking of medication changes over time
+## Setup Instructions
+
+### 1. Clone the repository
+
+git clone https://github.com/arjun755980/medication-reconciliation-system.git  
+cd medication-reconciliation-system  
 
 ---
 
-### 🔹 Conflict Resolution
-- Conflicts can be marked as resolved
-- Stores:
-  - resolution reason
-  - timestamp
-- Maintains auditability
+### 2. Create virtual environment
+
+python3 -m venv venv  
+source venv/bin/activate  
 
 ---
 
-### 🔹 Reporting APIs
+### 3. Install dependencies
 
-Patients with unresolved conflicts:
-GET /report/clinic/{clinic_name}
-
-Conflict summary (last 30 days):
-GET /report/conflicts/summary
-
-Resolve a conflict:
-POST /conflicts/{conflict_id}/resolve
+pip install -r requirements.txt  
 
 ---
 
-## 🏗 System Architecture
+### 4. Setup MongoDB
 
-Client (Swagger UI)  
-↓  
-FastAPI Backend  
-↓  
-Services Layer  
-- Normalization  
-- Conflict Detection  
-- Rules Engine  
-↓  
-MongoDB Atlas  
+#### Option A: Local MongoDB
+Ensure MongoDB is installed and running on your system.
+
+#### Option B: MongoDB Atlas
+- Create a free cluster  
+- Create a database user  
+- Allow network access  
+- Copy the connection string  
+- Update it in your db.py  
 
 ---
 
-## 🗃 Data Model
+### 5. Run the server
+
+uvicorn app.main:app --reload  
+
+---
+
+### 6. Open Swagger UI
+
+http://127.0.0.1:8000/docs  
+
+---
+
+## Seeding Test Data
+
+A seed script is included to populate the database with sample data.
+
+Run:
+
+python seed/seed_data.py  
+
+This will:
+- Insert sample patient snapshots  
+- Generate conflicts (dose mismatch, status conflict, drug interactions)  
+- Help test reporting endpoints easily  
+
+---
+
+## API Endpoints
+
+### Ingestion
+
+POST /patients/{patient_id}/medications  
+
+### Reports
+
+GET /report/clinic/{clinic_name}  
+GET /report/conflicts/summary  
+
+### Conflict Resolution
+
+POST /conflicts/{conflict_id}/resolve  
+
+---
+
+## MongoDB Schema
 
 ### Snapshots Collection
+
+Stores versioned medication data.
+
+Fields:
 - patient_id  
 - version  
 - timestamp  
 - sources  
-
-Each snapshot stores medications grouped by source.
+  - source_type  
+  - medications  
+    - name  
+    - dose  
+    - unit  
+    - status  
 
 ---
 
 ### Conflicts Collection
-- type  
-- medication(s)  
+
+Stores detected conflicts.
+
+Fields:
+- patient_id  
+- type (dose_mismatch, status_conflict, drug_interaction)  
+- medication / medications  
 - details  
 - resolved  
-- resolution  
-- patient_id  
 - timestamp  
-
-Stores detected conflicts in an auditable structure.
-
----
-
-## ⚙️ Technology Stack
-- FastAPI  
-- MongoDB Atlas  
-- PyMongo  
-- Pytest  
+- resolution (reason, resolved_at)  
 
 ---
 
-## ⚙️ Setup Instructions
+## Sample Conflict Document
 
-git clone https://github.com/arjun755980/medication-reconciliation-system.git  
-cd med_reconciliation  
-python3 -m venv venv  
-source venv/bin/activate  
-pip install -r requirements.txt  
-
-Update MongoDB connection string in:
-app/db.py
-
----
-
-## ▶️ Running the Application
-
-uvicorn app.main:app --reload  
-
-Swagger UI:
-http://127.0.0.1:8000/docs
-
----
-
-## 🌱 Seed Data
-
-python seed/seed_data.py  
-
-Generates synthetic patients and conflict scenarios.
+{<br>
+  "patient_id": "p1", <br>
+  "type": "dose_mismatch",<br>
+  "medication": "aspirin",<br>
+  "details": [<br>
+    {<br>
+      "source": "clinic_emr",<br>
+      "dose": 75,<br>
+      "unit": "mg",<br>
+      "status": "active"<br>
+    },<br>
+    {<br>
+      "source": "hospital_discharge",<br>
+      "dose": 100,<br>
+      "unit": "mg",<br>
+      "status": "active"<br>
+    }<br>
+  ],<br>
+  "resolved": false,<br>
+  "timestamp": "2026-03-20T10:00:00Z"<br>
+}<br>
 
 ---
 
-## 🧪 Testing
+## Conflict Detection Logic
+
+### 1. Dose Mismatch
+Same medication appears with different doses across sources.
+
+### 2. Status Conflict
+Medication marked active in one source and inactive in another.
+
+### 3. Drug Interaction
+Two medications belong to conflicting drug classes based on predefined rules.
+
+---
+
+## Conflict Rules
+
+Drug interaction rules are defined in the project (rules file).
+
+Example conflicting combinations:
+- aspirin + warfarin  
+- ibuprofen + warfarin  
+
+These simulate real-world unsafe drug combinations.
+
+---
+
+## Indexing Strategy
+
+- patient_id → quick lookup  
+- resolved → filter unresolved conflicts  
+- timestamp → time-based queries  
+
+---
+
+## Testing
+
+Run tests using:
 
 PYTHONPATH=. pytest  
 
 Covers:
-- Conflict detection logic
-- Edge cases (missing fields)
-- Aggregation queries
+- Conflict detection edge cases  
+- Aggregation logic  
 
 ---
 
-## ⚖️ Design Decisions & Trade-offs
+## Design Decisions
 
-Denormalization vs References:
-Used denormalized schema for faster reads and simpler queries. Trade-off: increased storage redundancy.
+### Versioning
+Each ingestion creates a new snapshot instead of overwriting data.  
+This preserves history and ensures auditability.
 
-Snapshot-Based Versioning:
-Chosen over in-place updates to ensure auditability and historical tracking.
+### Conflict Detection on Write
+Conflicts are detected during ingestion, making reporting faster.
 
-Rule-Based Conflict Detection:
-Used static rules instead of a real drug database. Trade-off: simpler but less clinically comprehensive.
-
----
-
-## ⚠️ Limitations
-- No integration with real clinical drug database
-- Simplified rule-based conflict detection
-- No authentication or authorization layer
+### Denormalization
+Patient-related data is stored with conflicts to simplify queries.
 
 ---
 
-## 🔮 Future Enhancements
-- Integration with external drug APIs
-- Advanced clinical decision support
-- Role-based authentication
-- Frontend dashboard for visualization
+## Author
+
+Arjun Manohar  
+B.Tech Computer Science  
+NIT Calicut  
+
+GitHub: https://github.com/arjun755980  
 
 ---
 
+## Notes
 
----
-
+- This project uses static rules instead of a real drug database  
+- Designed for academic and demonstration purposes  
