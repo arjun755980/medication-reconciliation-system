@@ -96,19 +96,14 @@ This will:
 
 ## API Endpoints
 
-### Ingestion
 
-POST /patients/{patient_id}/medications  
 
-### Reports
-
-GET /report/clinic/{clinic_name}  
-GET /report/conflicts/summary  
-
-### Conflict Resolution
-
-POST /conflicts/{conflict_id}/resolve  
-
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /patients/{patient_id}/medications | Ingest medication data from a source |
+| GET | /report/clinic/{clinic_name} | Get patients with unresolved conflicts (filtered by source) |
+| GET | /report/conflicts/summary | Get summary of conflicts (e.g., patients with multiple conflicts) |
+| POST  | /conflicts/{conflict_id}/resolve | Resolve a conflict |
 ---
 
 ## MongoDB Schema
