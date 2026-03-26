@@ -63,7 +63,7 @@ Ensure MongoDB is installed and running on your system.
 - Create a database user  
 - Allow network access  
 - Copy the connection string  
-- Update it in your db.py  
+- Update it in your db.py and seed_data.py
 
 ---
 
