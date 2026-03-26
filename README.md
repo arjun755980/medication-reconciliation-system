@@ -143,27 +143,29 @@ Fields:
 
 ## Sample Conflict Document
 
-{<br>
-  "patient_id": "p1", <br>
-  "type": "dose_mismatch",<br>
-  "medication": "aspirin",<br>
-  "details": [<br>
-    {<br>
-      "source": "clinic_emr",<br>
-      "dose": 75,<br>
-      "unit": "mg",<br>
-      "status": "active"<br>
-    },<br>
-    {<br>
-      "source": "hospital_discharge",<br>
-      "dose": 100,<br>
-      "unit": "mg",<br>
-      "status": "active"<br>
-    }<br>
-  ],<br>
-  "resolved": false,<br>
-  "timestamp": "2026-03-20T10:00:00Z"<br>
-}<br>
+```json
+{
+  "patient_id": "p1",
+  "type": "dose_mismatch",
+  "medication": "aspirin",
+  "details": [
+    {
+      "source": "clinic_emr",
+      "dose": 75,
+      "unit": "mg",
+      "status": "active"
+    },
+    {
+      "source": "hospital_discharge",
+      "dose": 100,
+      "unit": "mg",
+      "status": "active"
+    }
+  ],
+  "resolved": false,
+  "timestamp": "2026-03-20T10:00:00Z"
+}
+```
 
 ---
 
